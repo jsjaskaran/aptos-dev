@@ -1,0 +1,44 @@
+services:
+  aptosbot-backend:
+    build:
+      context: .
+      dockerfile: backend.dockerfile
+    image: itzcrazykns1337/aptosbot-backend:main
+    environment:
+      - SEARXNG_API_URL=http://searxng:8080
+    depends_on:
+      - searxng
+    ports:
+      - 3001:3001
+    volumes:
+      - backend-dbstore:/home/aptosbot/data
+      - uploads:/home/aptosbot/uploads
+      - ./config.toml:/home/aptosbot/config.toml
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    networks:
+      - aptosbot-network
+    restart: unless-stopped
+
+  aptosbot-frontend:
+    build:
+      context: .
+      dockerfile: app.dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://127.0.0.1:3001/api
+        - NEXT_PUBLIC_WS_URL=ws://127.0.0.1:3001
+    image: itzcrazykns1337/aptosbot-frontend:main
+    depends_on:
+      - aptosbot-backend
+    ports:
+      - 3000:3000
+    networks:
+      - aptosbot-network
+    restart: unless-stopped
+
+networks:
+  aptosbot-network:
+
+volumes:
+  backend-dbstore:
+  uploads:
